@@ -1,6 +1,6 @@
 import { type TResponseData, type TResponseVariables } from "@formbricks/types/responses";
 import { type TSurveyElement } from "@formbricks/types/surveys/elements";
-import { formatDateWithOrdinal, isValidDateString } from "@/lib/date-time";
+import { formatDateWithOrdinal, parseDateString } from "@/lib/date-time";
 import { getLocalizedValue } from "@/lib/i18n";
 
 // Extracts the ID of recall question from a string containing the "recall" pattern.
@@ -34,6 +34,21 @@ const extractRecallInfo = (headline: string, id?: string): string | null => {
   return match ? match[0] : null;
 };
 
+const formatRecallValue = (value: unknown, languageCode: string): string | null => {
+  if (!value) return null;
+  if (Array.isArray(value)) {
+    const joined = value.filter((item) => item).join(", ");
+    return joined === "" ? null : joined;
+  }
+  if (typeof value === "string") {
+    const parsedDate = parseDateString(value);
+    if (parsedDate) {
+      return formatDateWithOrdinal(parsedDate, languageCode);
+    }
+  }
+  return value.toString();
+};
+
 export const replaceRecallInfo = (
   text: string,
   responseData: TResponseData,
@@ -62,17 +77,10 @@ export const replaceRecallInfo = (
       value = (responseData[recallItemId] as string) ?? fallback;
     }
 
-    // Additional value formatting if it exists
-    if (value) {
-      if (isValidDateString(value)) {
-        value = formatDateWithOrdinal(new Date(value), languageCode);
-      } else if (Array.isArray(value)) {
-        value = value.filter((item) => item).join(", "); // Filters out empty values and joins with a comma
-      }
-    }
+    const formattedValue = formatRecallValue(value, languageCode);
 
     // Replace the recallInfo in the text with the obtained or fallback value
-    modifiedText = modifiedText.replace(recallInfo, value?.toString() || fallback);
+    modifiedText = modifiedText.replace(recallInfo, formattedValue ?? fallback);
   }
 
   return modifiedText;
