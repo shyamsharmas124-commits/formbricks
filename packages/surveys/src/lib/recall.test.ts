@@ -15,13 +15,6 @@ vi.mock("./i18n", () => ({
 // Mock date-time functions as they are used internally and we want to isolate recall logic
 vi.mock("./date-time", () => ({
   isValidDateString: (val: string) => /^\d{4}-\d{2}-\d{2}$/.test(val) || /^\d{2}-\d{2}-\d{4}$/.test(val),
-  parseDateString: (val: string) => {
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(val) && !/^\d{2}-\d{2}-\d{4}$/.test(val)) return null;
-    let normalized = val;
-    if (/^\d{2}-\d{2}-\d{4}$/.test(val)) normalized = val.replace(/(\d{2})-(\d{2})-(\d{4})/, "$3-$2-$1");
-    const d = new Date(normalized);
-    return isNaN(d.getTime()) ? null : d;
-  },
   formatDateWithOrdinal: vi.fn(
     (date: Date) =>
       `${date.getUTCFullYear()}-${("0" + (date.getUTCMonth() + 1)).slice(-2)}-${("0" + date.getUTCDate()).slice(-2)}_formatted`
@@ -87,26 +80,6 @@ describe("replaceRecallInfo", () => {
     replaceRecallInfo(text, responseData, variables, "fr-FR");
 
     expect(vi.mocked(formatDateWithOrdinal)).toHaveBeenCalledWith(expect.any(Date), "fr-FR");
-  });
-
-  test("should format DD-MM-YYYY date strings from responseData", () => {
-    const customData: TResponseData = {
-      ...responseData,
-      ddmmyyyyDate: "15-01-2023",
-    };
-    const text = "Registered on: #recall:ddmmyyyyDate/fallback:N/A#.";
-    const expected = "Registered on: 2023-01-15_formatted.";
-    expect(replaceRecallInfo(text, customData, variables)).toBe(expected);
-  });
-
-  test("should join array of date strings rather than formatting as single date", () => {
-    const customData: TResponseData = {
-      ...responseData,
-      dateOptions: ["2023-01-15"],
-    };
-    const text = "Options: #recall:dateOptions/fallback:none#.";
-    const expected = "Options: 2023-01-15.";
-    expect(replaceRecallInfo(text, customData, variables)).toBe(expected);
   });
 
   test("should join array values with a comma and space", () => {

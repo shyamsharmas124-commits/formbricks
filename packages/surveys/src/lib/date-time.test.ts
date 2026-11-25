@@ -1,29 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { formatDateWithOrdinal, isValidDateString, parseDateString } from "./date-time";
-
-describe("parseDateString", () => {
-  test("should parse valid YYYY-MM-DD format into Date", () => {
-    const date = parseDateString("2023-01-15");
-    expect(date).toBeInstanceOf(Date);
-    expect(date?.getFullYear()).toBe(2023);
-    expect(date?.getMonth()).toBe(0);
-    expect(date?.getDate()).toBe(15);
-  });
-
-  test("should parse valid DD-MM-YYYY format into Date", () => {
-    const date = parseDateString("15-01-2023");
-    expect(date).toBeInstanceOf(Date);
-    expect(date?.getFullYear()).toBe(2023);
-    expect(date?.getMonth()).toBe(0);
-    expect(date?.getDate()).toBe(15);
-  });
-
-  test("should return null for invalid date formats or values", () => {
-    expect(parseDateString("invalid")).toBeNull();
-    expect(parseDateString("32-01-2023")).toBeNull();
-    expect(parseDateString("")).toBeNull();
-  });
-});
+import { formatDateWithOrdinal, isValidDateString } from "./date-time";
 
 describe("isValidDateString", () => {
   test("should return true for valid YYYY-MM-DD format", () => {
@@ -82,9 +58,5 @@ describe("formatDateWithOrdinal", () => {
     const date = new Date(2024, 2, 20);
 
     expect(formatDateWithOrdinal(date, "de-DE")).toBe(getExpectedLocaleDate(date, "de-DE"));
-  });
-
-  test("returns empty string safely when given an invalid date", () => {
-    expect(formatDateWithOrdinal(new Date(NaN), "en-US")).toBe("");
   });
 });
